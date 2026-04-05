@@ -1,15 +1,14 @@
 `timescale 1ns / 1ps
-// 通用spi屏幕控制模块，用户只需要提供显示数据和坐标即可控制spi屏幕显示
+//整个spi屏幕控制顶层，用户只需要提供显示数据就可以使用这个顶层进行spi屏幕显示
 module spi_screen_top(
     input                               sys_clk                    ,
     input                               sys_rst_n                  ,
 
     //用户信号
-    output                              flush_data_update_o        ,//更新当前显示数据使能
-    input              [  15: 0]        flush_data_i               ,//当前显示数据输入
+    output                              flush_data_update_o        ,//更新当前坐标点显示数据使能
+    input              [  15: 0]        flush_data_i               ,//当前坐标点显示的数据
     output             [  15: 0]        flush_addr_width_o         ,//当前刷新的x坐标
     output             [  15: 0]        flush_addr_height_o        ,//当前刷新的y坐标
-    output                              spi_screen_flush_fsync_o   ,//屏幕帧同步
 
 
      //spi tft screen   屏幕接口
@@ -26,36 +25,36 @@ module spi_screen_top(
 
 //屏幕用户接口
     wire               [   7: 0]        spi_screen_flush_data      ;//屏幕显示数据
-    wire                                spi_screen_flush_updte     ;//屏幕数据更新
+    wire                                spi_screen_flush_updte     ;//像素点数据刷新
     wire                                spi_screen_flush_fsync     ;//屏幕帧同步
 
-//坐标计数器
+//长宽计数器
     reg                [  15: 0]        width_cnt                  ;
     reg                [  15: 0]        height_cnt                 ;
 
-//数据更新计数器
+//数据更新
     reg                                 data_update_cnt            ;
 
 
-//显示数据寄存器
+//更新数据寄存器
     reg                [  15: 0]        flush_data_reg             ;
-//更新使能寄存器
+//更新数据使能寄存器
     reg                                 flush_updte_en;
 
-    assign  spi_screen_flush_data     = flush_data_reg[15:8];//高位数据
+    assign  spi_screen_flush_data     = flush_data_reg[15:8];//高位发送
 
-    //发送完16bit图像数据时，更新显示数据使能信号
+    //当发送完16bit的图像数据时，坐标点显示数据使能拉高
     assign  flush_data_update_o = (spi_screen_flush_updte == 1'b1 && data_update_cnt == 1'b0 && flush_updte_en == 1'b1) ? 1'b1 : 1'b0;
 
-    //坐标计数器输出到用户接口
+    //将长宽计数器连接到输出
     assign  flush_addr_width_o        = width_cnt;
     assign  flush_addr_height_o       = height_cnt;
 always@(posedge sys_clk or negedge sys_rst_n) begin
     if( sys_rst_n == 1'b0)
         flush_updte_en <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1 )   //刷新模块产生一帧结束，清零
+    else if( spi_screen_flush_fsync == 1'b1 )   //刷新模块发送完一帧数据,清零
         flush_updte_en <= 'd0;
-    else if( spi_screen_flush_updte == 1'b1)    //发送完8位数据后，flush_updte_en置位
+    else if( spi_screen_flush_updte == 1'b1)    //发送完8位数据后,flush_updte_en拉高
         flush_updte_en <= 'd1;
     else
         flush_updte_en <= flush_updte_en;
@@ -63,11 +62,11 @@ end
 always@(posedge sys_clk or negedge sys_rst_n) begin
     if( sys_rst_n == 1'b0)
         data_update_cnt <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1 )                       //刷新模块产生一帧结束
+    else if( spi_screen_flush_fsync == 1'b1 )                       //刷新模块发送完一帧数据
         data_update_cnt <= 'd0;
-    else if( spi_screen_flush_updte == 1'b1)                        //刷新模块通过spi发送完一个8bit数据，data_update_cnt加1
-        data_update_cnt <= data_update_cnt + 1'b1;                  //发送高8位时data_update_cnt=1，发送低8位时data_update_cnt=0
-    else                                                            //所以发送16bit数据时data_update_cnt=0
+    else if( spi_screen_flush_updte == 1'b1)                        //刷新模块通过spi发送完一个8bit数据，data_update_cnt加一
+        data_update_cnt <= data_update_cnt + 1'b1;                  //发送高八位时data_update_cnt=1，发送低八位时data_update_cnt=0，
+    else                                                            //所以发送完16bit数据时data_update_cnt=0
         data_update_cnt <= data_update_cnt;
 end
 
@@ -75,13 +74,13 @@ end
 always@(posedge sys_clk or negedge sys_rst_n) begin
     if( sys_rst_n == 1'b0 )
         width_cnt <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1 )                       //一帧图像数据发送结束，宽度计数器清零
+    else if( spi_screen_flush_fsync == 1'b1 )                       //一帧图像数据发送完，计数器清零
         width_cnt <= 'd0;
-    else if( flush_data_update_o)//需要更新当前发送的16bit图像数据时
-        if( width_cnt == (SCREEN_WIDTH-1))                     //宽度计数器达到最大值时清零
+    else if( flush_data_update_o)//发送完当前像素点16bit图像数据时
+        if( width_cnt == (SCREEN_WIDTH-1))                     //计数到计数器最大值时清零
             width_cnt <= 'd0;
         else
-            width_cnt <= width_cnt + 1'b1;                          //width_cnt每次加1
+            width_cnt <= width_cnt + 1'b1;                          //width_cnt计数器加1
     else
         width_cnt <= width_cnt;
 end
@@ -90,13 +89,13 @@ end
 always@(posedge sys_clk or negedge sys_rst_n) begin
     if( sys_rst_n == 1'b0 )
         height_cnt <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1)                        //一帧图像数据发送结束，高度计数器清零
+    else if( spi_screen_flush_fsync == 1'b1)                        //一帧图像数据发送完，计数器清零
         height_cnt <= 'd0;
-    else if( width_cnt == (SCREEN_WIDTH-1) && flush_data_update_o)//图像数据发送到一行结束时
-        if( height_cnt == (SCREEN_HEIGHT-1))                     //高度计数器达到最大值时清零
+    else if( width_cnt == (SCREEN_WIDTH-1) && flush_data_update_o)//当图像绘制完一行时
+        if( height_cnt == (SCREEN_HEIGHT-1))                     //计数到计数器最大值时清零
             height_cnt <= 'd0;
         else
-            height_cnt <= height_cnt + 1'b1;                        //height_cnt每次加1
+            height_cnt <= height_cnt + 1'b1;                        //height_cnt计数器加一
     else
         height_cnt <= height_cnt;
 end
@@ -106,11 +105,11 @@ end
 always@(posedge sys_clk or negedge sys_rst_n) begin
     if( sys_rst_n == 1'b0)
         flush_data_reg <= 'd0;
-    else if( spi_screen_flush_updte == 1'b1)               //刷新模块请求一个图像数据
-        if( data_update_cnt == 1'b0 )                      //data_update_cnt=0时，需要发送新数据，寄存器更新
+    else if( spi_screen_flush_updte == 1'b1)               //刷新模块发送完一个图像数据
+        if( data_update_cnt == 1'b0 )                      //data_update_cnt=0时,发送完了低八位,寄存新数据
             flush_data_reg <= flush_data_i;
         else
-            flush_data_reg <= flush_data_reg << 8;        //data_update_cnt=1时，需要发送高8位，寄存器左移8位，将低8位移到高8位
+            flush_data_reg <= flush_data_reg << 8;        //data_update_cnt=1时，发送完了高八位,将数据向左移动8位，发送低八位数据
     else
         flush_data_reg <= flush_data_reg;
 end
@@ -122,7 +121,7 @@ spi_tft_screen_driver spi_tft_screen_driver_inst(
 
     //用户接口
     .spi_screen_flush_data_i            (spi_screen_flush_data     ),//屏幕显示数据
-    .spi_screen_flush_updte_o           (spi_screen_flush_updte    ),//屏幕数据更新//在需要数据时tft屏幕会请求
+    .spi_screen_flush_updte_o           (spi_screen_flush_updte    ),//像素点数据刷新//在进行数据到tft屏幕的显示
     .spi_screen_flush_fsync_o           (spi_screen_flush_fsync    ),//屏幕帧同步
 
      //spi tft screen   屏幕接口
@@ -133,7 +132,4 @@ spi_tft_screen_driver spi_tft_screen_driver_inst(
     .lcd_reset                          (lcd_reset                 ),// 屏幕复位接口
     .lcd_blk                            (lcd_blk                   ) // 屏幕背光接口
 );
-
-// 帧同步信号传递
-assign spi_screen_flush_fsync_o = spi_screen_flush_fsync;
 endmodule
