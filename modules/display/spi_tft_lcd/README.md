@@ -27,6 +27,31 @@
 
 ---
 
+> 💡 **通信模式说明 (Interface Mode)**
+> 本驱动专为引出了 `DC/RS` (Data/Command) 引脚的屏幕模块设计。该引脚的存在表明，屏幕出厂时内部已通过硬件配置为 **4-line 8bit serial I/F**（4线8位串行接口）模式。因此，本代码的底层通信采用最经典的标准 8-bit SPI 时序，依靠配合翻转 `DC` 引脚的电平来区分命令（0）与数据（1），使用者无需去处理非标准的 9-bit SPI 时序。
+
+## 📍 引脚分配示例（基于 xc7a100tfgg484‑2 / FPGA176）
+
+本模块已在 **Xilinx Artix‑7** 系列器件 **xc7a100tfgg484‑2** 上验证。你可以直接复制到你的 `.xdc` 文件中。若使用其他板卡，请根据原理图调整引脚编号。
+
+| 信号名称 (RTL Port) | FPGA 引脚 (Package Pin) | I/O 标准 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `sys_clk` | R4 | LVCMOS15 | 系统时钟 (50 MHz) |
+| `sys_rst_n` | U7 | LVCMOS15 | 系统复位 (低电平有效) |
+| `lcd_spi_sclk` | U15 | LVCMOS33 | SPI 时钟 |
+| `lcd_spi_mosi` | Y14 | LVCMOS33 | SPI 数据输出 |
+| `lcd_spi_cs` | T14 | LVCMOS33 | SPI 片选 |
+| `lcd_dc` | V13 | LVCMOS33 | 数据/命令选择 |
+| `lcd_reset` | T16 | LVCMOS33 | 屏幕硬件复位 |
+| `lcd_blk` | AA9 | LVCMOS33 | 屏幕背光控制 |
+
+> **时钟约束示例**：
+> ```tcl
+> create_clock -period 20.000 -name sys_clk [get_ports sys_clk]
+> ```
+
+---
+
 ## 🏗️ 2. 代码组织结构 (RTL Architecture)
 
 为了实现高内聚低耦合，本驱动采用了分层架构，核心代码均存放在 `rtl/` 目录下：
