@@ -1,135 +1,108 @@
 `timescale 1ns / 1ps
-//整个spi屏幕控制顶层，用户只需要提供显示数据就可以使用这个顶层进行spi屏幕显示
+
+// 修正版：解决了 16-bit 像素拆分时的坐标错位与黄线问题
 module spi_screen_top(
     input                               sys_clk                    ,
     input                               sys_rst_n                  ,
 
-    //用户信号
-    output                              flush_data_update_o        ,//更新当前坐标点显示数据使能
-    input              [  15: 0]        flush_data_i               ,//当前坐标点显示的数据
-    output             [  15: 0]        flush_addr_width_o         ,//当前刷新的x坐标
-    output             [  15: 0]        flush_addr_height_o        ,//当前刷新的y坐标
+    // 用户接口
+    output                              flush_data_update_o        , // 更新当前坐标点显示数据使能
+    input              [  15: 0]        flush_data_i               , // 当前坐标点显示的数据输入
+    output             [  15: 0]        flush_addr_width_o         , // 当前刷新的x坐标
+    output             [  15: 0]        flush_addr_height_o        , // 当前刷新的y坐标
+    output                              spi_screen_flush_fsync_o   , // 屏幕帧同步
 
-
-     //spi tft screen   屏幕接口
-    output                              lcd_spi_sclk               ,// 屏幕spi时钟接口
-    output                              lcd_spi_mosi               ,// 屏幕spi数据接口
-    output                              lcd_spi_cs                 ,// 屏幕spi使能接口
-    output                              lcd_dc                     ,// 屏幕 数据/命令 接口
-    output                              lcd_reset                  ,// 屏幕复位接口
-    output                              lcd_blk                     // 屏幕背光接口
+    // 屏幕物理接口
+    output                              lcd_spi_sclk               ,
+    output                              lcd_spi_mosi               ,
+    output                              lcd_spi_cs                 ,
+    output                              lcd_dc                     ,
+    output                              lcd_reset                  ,
+    output                              lcd_blk                     
 );
-//屏幕尺寸
+
     parameter                           SCREEN_WIDTH              = 32'd240;
     parameter                           SCREEN_HEIGHT             = 32'd240;
 
-//屏幕用户接口
-    wire               [   7: 0]        spi_screen_flush_data      ;//屏幕显示数据
-    wire                                spi_screen_flush_updte     ;//像素点数据刷新
-    wire                                spi_screen_flush_fsync     ;//屏幕帧同步
+    // 内部信号
+    wire               [   7: 0]        spi_screen_flush_data      ; 
+    wire                                spi_screen_flush_updte     ; 
+    wire                                spi_screen_flush_fsync     ; 
 
-//长宽计数器
     reg                [  15: 0]        width_cnt                  ;
     reg                [  15: 0]        height_cnt                 ;
-
-//数据更新
     reg                                 data_update_cnt            ;
-
-
-//更新数据寄存器
     reg                [  15: 0]        flush_data_reg             ;
-//更新数据使能寄存器
-    reg                                 flush_updte_en;
 
-    assign  spi_screen_flush_data     = flush_data_reg[15:8];//高位发送
+    // 🌟 核心逻辑：定义像素起始脉冲
+    // 当底层请求数据且 data_update_cnt 为 0 时，意味着正要发送 16bit 像素的第一个字节
+    wire pixel_start_pulse;
+    assign pixel_start_pulse = (spi_screen_flush_updte == 1'b1 && data_update_cnt == 1'b0);
 
-    //当发送完16bit的图像数据时，坐标点显示数据使能拉高
-    assign  flush_data_update_o = (spi_screen_flush_updte == 1'b1 && data_update_cnt == 1'b0 && flush_updte_en == 1'b1) ? 1'b1 : 1'b0;
+    // 输出赋值
+    assign spi_screen_flush_data    = flush_data_reg[15:8]; 
+    assign flush_data_update_o      = pixel_start_pulse; 
+    assign flush_addr_width_o       = width_cnt;
+    assign flush_addr_height_o      = height_cnt;
+    assign spi_screen_flush_fsync_o = spi_screen_flush_fsync;
 
-    //将长宽计数器连接到输出
-    assign  flush_addr_width_o        = width_cnt;
-    assign  flush_addr_height_o       = height_cnt;
-always@(posedge sys_clk or negedge sys_rst_n) begin
-    if( sys_rst_n == 1'b0)
-        flush_updte_en <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1 )   //刷新模块发送完一帧数据,清零
-        flush_updte_en <= 'd0;
-    else if( spi_screen_flush_updte == 1'b1)    //发送完8位数据后,flush_updte_en拉高
-        flush_updte_en <= 'd1;
-    else
-        flush_updte_en <= flush_updte_en;
-end
-always@(posedge sys_clk or negedge sys_rst_n) begin
-    if( sys_rst_n == 1'b0)
-        data_update_cnt <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1 )                       //刷新模块发送完一帧数据
-        data_update_cnt <= 'd0;
-    else if( spi_screen_flush_updte == 1'b1)                        //刷新模块通过spi发送完一个8bit数据，data_update_cnt加一
-        data_update_cnt <= data_update_cnt + 1'b1;                  //发送高八位时data_update_cnt=1，发送低八位时data_update_cnt=0，
-    else                                                            //所以发送完16bit数据时data_update_cnt=0
-        data_update_cnt <= data_update_cnt;
-end
+    // 1. 数据更新计数器：控制 16bit 拆分为两个 8bit 发送
+    always @(posedge sys_clk or negedge sys_rst_n) begin
+        if (sys_rst_n == 1'b0 || spi_screen_flush_fsync == 1'b1)
+            data_update_cnt <= 1'b0;
+        else if (spi_screen_flush_updte == 1'b1)
+            data_update_cnt <= data_update_cnt + 1'b1;
+    end
 
+    // 2. 宽度计数器：使用像素起始脉冲驱动，确保与数据锁存严格对齐
+    always @(posedge sys_clk or negedge sys_rst_n) begin
+        if (sys_rst_n == 1'b0 || spi_screen_flush_fsync == 1'b1)
+            width_cnt <= 16'd0;
+        else if (pixel_start_pulse) begin
+            if (width_cnt == (SCREEN_WIDTH - 1))
+                width_cnt <= 16'd0;
+            else
+                width_cnt <= width_cnt + 1'b1;
+        end
+    end
 
-always@(posedge sys_clk or negedge sys_rst_n) begin
-    if( sys_rst_n == 1'b0 )
-        width_cnt <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1 )                       //一帧图像数据发送完，计数器清零
-        width_cnt <= 'd0;
-    else if( flush_data_update_o)//发送完当前像素点16bit图像数据时
-        if( width_cnt == (SCREEN_WIDTH-1))                     //计数到计数器最大值时清零
-            width_cnt <= 'd0;
-        else
-            width_cnt <= width_cnt + 1'b1;                          //width_cnt计数器加1
-    else
-        width_cnt <= width_cnt;
-end
+    // 3. 高度计数器
+    always @(posedge sys_clk or negedge sys_rst_n) begin
+        if (sys_rst_n == 1'b0 || spi_screen_flush_fsync == 1'b1)
+            height_cnt <= 16'd0;
+        else if (pixel_start_pulse && (width_cnt == SCREEN_WIDTH - 1)) begin
+            if (height_cnt == (SCREEN_HEIGHT - 1))
+                height_cnt <= 16'd0;
+            else
+                height_cnt <= height_cnt + 1'b1;
+        end
+    end
 
+    // 4. 数据寄存器：在像素开始时刻精准锁存输入颜色，避免跨像素混色
+    always @(posedge sys_clk or negedge sys_rst_n) begin
+        if (sys_rst_n == 1'b0)
+            flush_data_reg <= 16'd0;
+        else if (spi_screen_flush_updte == 1'b1) begin
+            if (data_update_cnt == 1'b0)
+                flush_data_reg <= flush_data_i; // 锁存新像素
+            else
+                flush_data_reg <= {flush_data_reg[7:0], 8'h00}; // 移位发送低8位
+        end
+    end
 
-always@(posedge sys_clk or negedge sys_rst_n) begin
-    if( sys_rst_n == 1'b0 )
-        height_cnt <= 'd0;
-    else if( spi_screen_flush_fsync == 1'b1)                        //一帧图像数据发送完，计数器清零
-        height_cnt <= 'd0;
-    else if( width_cnt == (SCREEN_WIDTH-1) && flush_data_update_o)//当图像绘制完一行时
-        if( height_cnt == (SCREEN_HEIGHT-1))                     //计数到计数器最大值时清零
-            height_cnt <= 'd0;
-        else
-            height_cnt <= height_cnt + 1'b1;                        //height_cnt计数器加一
-    else
-        height_cnt <= height_cnt;
-end
+    // 5. 实例化驱动总管 (请确保该模块名与你的工程一致)
+    spi_tft_screen_driver spi_tft_screen_driver_inst(
+        .sys_clk                  (sys_clk),
+        .sys_rst_n                (sys_rst_n),
+        .spi_screen_flush_data_i  (spi_screen_flush_data),
+        .spi_screen_flush_updte_o (spi_screen_flush_updte),
+        .spi_screen_flush_fsync_o (spi_screen_flush_fsync),
+        .lcd_spi_sclk             (lcd_spi_sclk),
+        .lcd_spi_mosi             (lcd_spi_mosi),
+        .lcd_spi_cs               (lcd_spi_cs),
+        .lcd_dc                   (lcd_dc),
+        .lcd_reset                (lcd_reset),
+        .lcd_blk                  (lcd_blk)
+    );
 
-
-
-always@(posedge sys_clk or negedge sys_rst_n) begin
-    if( sys_rst_n == 1'b0)
-        flush_data_reg <= 'd0;
-    else if( spi_screen_flush_updte == 1'b1)               //刷新模块发送完一个图像数据
-        if( data_update_cnt == 1'b0 )                      //data_update_cnt=0时,发送完了低八位,寄存新数据
-            flush_data_reg <= flush_data_i;
-        else
-            flush_data_reg <= flush_data_reg << 8;        //data_update_cnt=1时，发送完了高八位,将数据向左移动8位，发送低八位数据
-    else
-        flush_data_reg <= flush_data_reg;
-end
-
-spi_tft_screen_driver spi_tft_screen_driver_inst(
-    .sys_clk                            (sys_clk                   ),
-    .sys_rst_n                          (sys_rst_n                 ),
-
-
-    //用户接口
-    .spi_screen_flush_data_i            (spi_screen_flush_data     ),//屏幕显示数据
-    .spi_screen_flush_updte_o           (spi_screen_flush_updte    ),//像素点数据刷新//在进行数据到tft屏幕的显示
-    .spi_screen_flush_fsync_o           (spi_screen_flush_fsync    ),//屏幕帧同步
-
-     //spi tft screen   屏幕接口
-    .lcd_spi_sclk                       (lcd_spi_sclk              ),// 屏幕spi时钟接口
-    .lcd_spi_mosi                       (lcd_spi_mosi              ),// 屏幕spi数据接口
-    .lcd_spi_cs                         (lcd_spi_cs                ),// 屏幕spi使能接口
-    .lcd_dc                             (lcd_dc                    ),// 屏幕 数据/命令 接口
-    .lcd_reset                          (lcd_reset                 ),// 屏幕复位接口
-    .lcd_blk                            (lcd_blk                   ) // 屏幕背光接口
-);
 endmodule

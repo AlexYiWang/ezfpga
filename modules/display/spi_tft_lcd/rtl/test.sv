@@ -22,28 +22,29 @@ always @(posedge sys_clk or negedge sys_rst_n) begin                // 显示九
     if (sys_rst_n == 1'b0)
         flush_data <= 16'd0;
     else if ((flush_addr_width >= 'd0   && flush_addr_width < 'd80) && (flush_addr_height >= 'd0 && flush_addr_height < 'd80))
-        flush_data <= 16'hF800;//红  1111 1000 0000 0000
+        flush_data <= 16'hF800; //红  1111 1000 0000 0000
     else if ((flush_addr_width >= 'd80 && flush_addr_width < 'd160) && (flush_addr_height >= 'd0 && flush_addr_height < 'd80))
-        flush_data <= 16'h07E0;//绿  0000 0111 1110 0000
+        flush_data <= 16'h07E0; //绿  0000 0111 1110 0000
     else if ((flush_addr_width >= 'd160 && flush_addr_width < 'd240) && (flush_addr_height >= 'd0 && flush_addr_height < 'd80))
-        flush_data <= 16'h001F;//蓝  0000 0000 0001 1111
+        flush_data <= 16'h001F; //蓝  0000 0000 0001 1111
 
     else if ((flush_addr_width >= 'd0   && flush_addr_width < 'd80) && (flush_addr_height >= 'd80 && flush_addr_height < 'd160))
-        flush_data <= 16'h07E0;//绿
+        flush_data <= 16'h07E0; //绿
     else if ((flush_addr_width >= 'd80 && flush_addr_width < 'd160) && (flush_addr_height >= 'd80 && flush_addr_height < 'd160))
-        flush_data <= 16'h001F;//蓝
+        flush_data <= 16'h001F; //蓝
     else if ((flush_addr_width >= 'd160 && flush_addr_width < 'd240) && (flush_addr_height >= 'd80 && flush_addr_height < 'd160))
-        flush_data <= 16'hF800;//红
+        flush_data <= 16'hF800; //红
 
     else if ((flush_addr_width >= 'd0   && flush_addr_width < 'd80) && (flush_addr_height >= 'd160 && flush_addr_height < 'd240))
-        flush_data <= 16'h001F;//蓝
+        flush_data <= 16'h001F; //蓝
     else if ((flush_addr_width >= 'd80 && flush_addr_width < 'd160) && (flush_addr_height >= 'd160 && flush_addr_height < 'd240))
-        flush_data <= 16'hF800;//红
+        flush_data <= 16'hF800; //红
     else if ((flush_addr_width >= 'd160 && flush_addr_width < 'd240) && (flush_addr_height >= 'd160 && flush_addr_height < 'd240))
-        flush_data <= 16'h07E0;//绿
+        flush_data <= 16'h07E0; //绿
     else
         flush_data <= 16'h0000;
 end
+
 //整个spi屏幕控制顶层，用户只需要提供显示数据就可以使用这个顶层进行spi屏幕显示
 spi_screen_top spi_screen_top_inst(
     .sys_clk                            (sys_clk                   ),
