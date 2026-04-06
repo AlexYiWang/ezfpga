@@ -9,7 +9,8 @@ module test(
     output                              lcd_spi_cs                 ,// 屏幕spi使能接口
     output                              lcd_dc                     ,// 屏幕 数据/命令 接口
     output                              lcd_reset                  ,// 屏幕复位接口
-    output                              lcd_blk                     // 屏幕背光接口
+    output                              lcd_blk                   , // 屏幕背光接口
+    output                              lcd_init_done               // LCD初始化完成标志
 );
 
     wire                                flush_data_update          ;//更新当前坐标点显示数据使能
@@ -65,5 +66,8 @@ spi_screen_top spi_screen_top_inst(
     .lcd_reset                          (lcd_reset                 ),// 屏幕复位接口
     .lcd_blk                            (lcd_blk                   ) // 屏幕背光接口
 );
+
+    // 将内部初始化完成标志引出
+    assign lcd_init_done = spi_screen_top_inst.spi_tft_screen_driver_inst.lcd_init_done;
 
 endmodule

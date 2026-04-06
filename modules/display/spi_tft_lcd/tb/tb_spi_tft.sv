@@ -61,11 +61,11 @@ module tb_spi_tft();
         sys_rst_n = 1;
 
         // 监视关键点：当初始化完成，开始进入刷新（Flush）阶段时 [cite: 86, 97, 106]
-        wait(u_test.spi_screen_top_inst.spi_tft_screen_driver_inst.lcd_init_done == 1'b1);
+        wait(u_test.lcd_init_done == 1'b1);
         $display("Time: %t | Info: LCD Initialization Done, Start Flushing...", $time);
 
         // 监视 0x2C 写显存命令的时刻 [cite: 181]
-        wait(lcd_dc == 0 && u_test.lcd_spi_mosi == 0); // 粗略捕获命令起始
+        wait(lcd_dc == 0 && lcd_spi_mosi == 0); // 粗略捕获命令起始
         #500; 
         
         // 运行足够长的时间以观察前几行像素
