@@ -28,12 +28,16 @@ module tb_spi_tft();
     reg        sys_clk;
     reg        sys_rst_n;
 
-    wire       lcd_spi_sclk;
     wire       lcd_spi_mosi;
-    wire       lcd_spi_cs;
     wire       lcd_dc;
+
+    // Verilator pragma: these signals are for waveform observation only
+    /* verilator lint_off UNUSEDSIGNAL */
+    wire       lcd_spi_sclk;
+    wire       lcd_spi_cs;
     wire       lcd_reset;
     wire       lcd_blk;
+    /* verilator lint_on UNUSEDSIGNAL */
 
     // 2. 实例化你的顶层测试模块 [cite: 277, 281]
     test u_test (

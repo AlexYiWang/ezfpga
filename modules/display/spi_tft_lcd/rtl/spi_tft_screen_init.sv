@@ -52,48 +52,48 @@ always@(*) begin
     case(state)
     S_IDLE:
         if( tft_screen_init_req_i == 1'b1)//初始化请求有效时，跳转到发送数据状态
-            next_state <= S_SEND_DATA;
+            next_state = S_SEND_DATA;
         else
-            next_state <= S_IDLE;
+            next_state = S_IDLE;
     S_SEND_DATA:
         if( spi_send_init_ack_i == 1'b1)//spi一个数据发送完成，跳转到延迟状态
-            next_state <= S_DELAY;
+            next_state = S_DELAY;
         else
-            next_state <= S_SEND_DATA;
+            next_state = S_SEND_DATA;
     S_DELAY:
         // 🔥 修复点1：总数从18改成19
         if( init_cnt == 'd19)//初始化命令和数据发送完成跳转到响应状态
             if( delay_cnt == DELAY_255ms)
-                next_state <= S_ACK;
+                next_state = S_ACK;
             else
-                next_state <= S_DELAY;
+                next_state = S_DELAY;
         else if(init_cnt == 'd1 )//延迟结束后，跳转到发送数据状态
             if(delay_cnt == DELAY_255ms)
-                next_state <= S_SEND_DATA;
+                next_state = S_SEND_DATA;
             else
-                next_state <= S_DELAY;
+                next_state = S_DELAY;
         else if(init_cnt == 'd2 )
                 if(delay_cnt == DELAY_255ms)
-                next_state <= S_SEND_DATA;
+                next_state = S_SEND_DATA;
             else
-                next_state <= S_DELAY;
+                next_state = S_DELAY;
         else if(init_cnt == 'd4 )
                 if(delay_cnt == DELAY_255ms)
-                next_state <= S_SEND_DATA;
+                next_state = S_SEND_DATA;
             else
-                next_state <= S_DELAY;
+                next_state = S_DELAY;
         else if(init_cnt == 'd17 )
                 if(delay_cnt == DELAY_255ms)
-                next_state <= S_SEND_DATA;
+                next_state = S_SEND_DATA;
             else
-                next_state <= S_DELAY;
+                next_state = S_DELAY;
         else if( delay_cnt == DELAY_200us)
-            next_state <= S_SEND_DATA;
+            next_state = S_SEND_DATA;
         else
-            next_state <= S_DELAY;
+            next_state = S_DELAY;
     S_ACK:
         next_state <= S_IDLE;
-    default: next_state <= S_IDLE;
+    default: next_state = S_IDLE;
     endcase
 
 end

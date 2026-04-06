@@ -12,31 +12,33 @@ module test(
     output                              lcd_blk                     // 屏幕背光接口
 );
 
+    /* verilator lint_off UNUSEDSIGNAL */
     wire                                flush_data_update          ;//更新当前坐标点显示数据使能
     reg                [  15: 0]        flush_data                 ;//当前坐标点显示的数据
     wire               [  15: 0]        flush_addr_width           ;//当前刷新的x坐标
     wire               [  15: 0]        flush_addr_height          ;//当前刷新的y坐标
     wire                                spi_screen_flush_fsync     ;//屏幕帧同步信号（内部使用）
+    /* verilator lint_on UNUSEDSIGNAL */
 
 
 always @(posedge sys_clk or negedge sys_rst_n) begin                // 显示九宫格测试图片 240*240
     if (sys_rst_n == 1'b0)
         flush_data <= 16'd0;
-    else if ((flush_addr_width >= 'd0   && flush_addr_width < 'd80) && (flush_addr_height >= 'd0 && flush_addr_height < 'd80))
+    else if ((flush_addr_width < 'd80) && (flush_addr_height < 'd80))
         flush_data <= 16'hF800; //红  1111 1000 0000 0000
-    else if ((flush_addr_width >= 'd80 && flush_addr_width < 'd160) && (flush_addr_height >= 'd0 && flush_addr_height < 'd80))
+    else if ((flush_addr_width >= 'd80 && flush_addr_width < 'd160) && (flush_addr_height < 'd80))
         flush_data <= 16'h07E0; //绿  0000 0111 1110 0000
-    else if ((flush_addr_width >= 'd160 && flush_addr_width < 'd240) && (flush_addr_height >= 'd0 && flush_addr_height < 'd80))
+    else if ((flush_addr_width >= 'd160 && flush_addr_width < 'd240) && (flush_addr_height < 'd80))
         flush_data <= 16'h001F; //蓝  0000 0000 0001 1111
 
-    else if ((flush_addr_width >= 'd0   && flush_addr_width < 'd80) && (flush_addr_height >= 'd80 && flush_addr_height < 'd160))
+    else if ((flush_addr_width < 'd80) && (flush_addr_height >= 'd80 && flush_addr_height < 'd160))
         flush_data <= 16'h07E0; //绿
     else if ((flush_addr_width >= 'd80 && flush_addr_width < 'd160) && (flush_addr_height >= 'd80 && flush_addr_height < 'd160))
         flush_data <= 16'h001F; //蓝
     else if ((flush_addr_width >= 'd160 && flush_addr_width < 'd240) && (flush_addr_height >= 'd80 && flush_addr_height < 'd160))
         flush_data <= 16'hF800; //红
 
-    else if ((flush_addr_width >= 'd0   && flush_addr_width < 'd80) && (flush_addr_height >= 'd160 && flush_addr_height < 'd240))
+    else if ((flush_addr_width < 'd80) && (flush_addr_height >= 'd160 && flush_addr_height < 'd240))
         flush_data <= 16'h001F; //蓝
     else if ((flush_addr_width >= 'd80 && flush_addr_width < 'd160) && (flush_addr_height >= 'd160 && flush_addr_height < 'd240))
         flush_data <= 16'hF800; //红
