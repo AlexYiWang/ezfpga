@@ -82,6 +82,7 @@ I frequently share my hardware explorations, project showcases, and dev logs. Yo
 
 * 📕 **rednote (小红书):** [Check out my posts & videos](https://xhslink.com/m/3w9oPTvwvrf)
 * 💻 **CSDN:** [Read my technical blogs](https://blog.csdn.net/Alex497259)
+* 📧 **Email:** [icwangyi@qq.com](mailto:icwangyi@qq.com)
 
 ---
 
