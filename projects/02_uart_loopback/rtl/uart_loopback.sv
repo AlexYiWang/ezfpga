@@ -17,6 +17,7 @@ module uart_loopback (
     // 内部信号
     wire        uart_rx_done;    // 接收完成脉冲
     wire [7:0]  uart_rx_data;    // 接收到的数据
+    wire        uart_tx_busy;    // 发送忙标志（未使用，保留接口）
 
     // UART 接收模块：接收串行数据
     uart_rx #(
@@ -43,7 +44,7 @@ module uart_loopback (
         .uart_tx_en    (uart_rx_done),  // 接收完成触发发送
         .uart_tx_data  (uart_rx_data),
         .uart_txd      (uart_txd    ),
-        .uart_tx_busy  (            )
+        .uart_tx_busy  (uart_tx_busy  )
     );
 
 endmodule
