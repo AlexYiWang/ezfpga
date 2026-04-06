@@ -1,5 +1,7 @@
 # EZFPGA 🚀
 
+[English] | [中文](./README_zh.md)
+
 Welcome to **EZFPGA**! 
 
 The goal of this repository is simple: to make FPGA development **easy, fun, and accessible**. 

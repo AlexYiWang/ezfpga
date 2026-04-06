@@ -1,5 +1,7 @@
 # EZFPGA 🚀
 
+[English](./README.md) | [中文]
+
 欢迎来到 **EZFPGA**！
 
 本仓库的目标很简单：让 FPGA 开发变得**简单、有趣、易上手**。
