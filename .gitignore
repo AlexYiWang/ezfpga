@@ -1,0 +1,54 @@
+# Vivado generated files
+*.jou
+*.log
+*.str
+*.html
+*.xml
+*.pb
+*.xpr
+*.data
+*.runs/
+*.sim/
+*.srcs/
+*.sdk/
+*.hw/
+*.cache/
+*.ip_user_files/
+*.tmp/
+*.gen/
+*.xpe
+*.xreport
+*.xsa
+*.bit
+*.ltx
+*.mmi
+*.mcs
+*.prm
+*.bin
+
+# Project specific temporary files
+*.out
+*.vcd
+*.wdb
+*.wcfg
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Output files
+*.bit
+*.bin
+*.mcs
+
+# Claude Code local settings
+.claude/

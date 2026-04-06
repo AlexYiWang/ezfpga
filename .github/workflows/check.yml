@@ -1,0 +1,57 @@
+name: Verilog/SystemVerilog Syntax Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Verilator
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y verilator
+
+    - name: Check Verilog/SystemVerilog syntax
+      run: |
+        # 查找所有 .v 和 .sv 文件
+        find . -type f \( -name "*.v" -o -name "*.sv" \) \
+          -not -path "./.git/*" \
+          -not -path "./projects/desktop_weather_station/*" \
+          | while read file; do
+            echo "Checking $file"
+            verilator --lint-only -Wall "$file" || exit 1
+          done
+
+    - name: Check Tcl syntax (basic)
+      run: |
+        # 简单的 Tcl 语法检查（使用 tclsh -c）
+        find . -type f -name "*.tcl" \
+          -not -path "./.git/*" \
+          | while read file; do
+            echo "Checking Tcl $file"
+            if ! tclsh -c "exit 0" < "$file" 2>/dev/null; then
+              echo "Tcl syntax error in $file"
+              exit 1
+            fi
+          done
+
+    - name: Check Python syntax
+      run: |
+        find . -type f -name "*.py" \
+          -not -path "./.git/*" \
+          | while read file; do
+            echo "Checking Python $file"
+            python3 -m py_compile "$file" || exit 1
+          done
