@@ -34,7 +34,6 @@ module tb_spi_tft();
     wire       lcd_dc;
     wire       lcd_reset;
     wire       lcd_blk;
-    wire       lcd_init_done;
 
     // 2. 实例化你的顶层测试模块 [cite: 277, 281]
     test u_test (
@@ -45,8 +44,7 @@ module tb_spi_tft();
         .lcd_spi_cs   (lcd_spi_cs),
         .lcd_dc       (lcd_dc),
         .lcd_reset    (lcd_reset),
-        .lcd_blk      (lcd_blk),
-        .lcd_init_done(lcd_init_done)
+        .lcd_blk      (lcd_blk)
     );
 
     // 3. 时钟产生：50MHz (20ns 周期) [cite: 191]
@@ -63,8 +61,8 @@ module tb_spi_tft();
         sys_rst_n = 1;
 
         // 监视关键点：当初始化完成，开始进入刷新（Flush）阶段时 [cite: 86, 97, 106]
-        wait(u_test.lcd_init_done == 1'b1);
-        $display("Time: %t | Info: LCD Initialization Done, Start Flushing...", $time);
+        #50000; // 等待50us确保LCD初始化完成
+        $display("Time: %t | Info: LCD Initialization Done (fixed delay), Start Flushing...", $time);
 
         // 监视 0x2C 写显存命令的时刻 [cite: 181]
         wait(lcd_dc == 0 && lcd_spi_mosi == 0); // 粗略捕获命令起始

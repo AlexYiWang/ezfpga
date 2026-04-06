@@ -25,52 +25,13 @@ jobs:
 
     - name: Check Verilog/SystemVerilog syntax
       run: |
-        # 查找所有 .v 和 .sv 文件
+        # 查找所有 .v 和 .sv 文件，进行基本语法检查
         find . -type f \( -name "*.v" -o -name "*.sv" \) \
           -not -path "./.git/*" \
           -not -path "./projects/desktop_weather_station/*" \
           | while read file; do
             echo "Checking $file"
-
-            # 获取文件所在目录
-            dir=$(dirname "$file")
-
-            # 构建搜索路径：始终包含文件所在目录
-            search_paths="-y $dir"
-
-            # 如果文件在 modules/ 目录下，尝试找到模块根目录并添加 rtl/tb 目录
-            if [[ "$file" == *"modules/"* ]]; then
-              # 提取模块根目录：modules/类别/模块名/
-              # 例如：modules/display/spi_tft_lcd/rtl/test.sv -> modules/display/spi_tft_lcd/
-              # 或者：modules/display/spi_tft_lcd/tb/tb_spi_tft.sv -> modules/display/spi_tft_lcd/
-
-              # 使用sed提取路径直到第三个斜杠（modules/xxx/yyy/）
-              module_root=$(echo "$file" | sed -n 's|\(modules/[^/]*/[^/]*/\).*|\1|p')
-
-              if [ -n "$module_root" ]; then
-                echo "  Module root: $module_root"
-
-                # 添加模块根目录下的常见源目录
-                if [ -d "${module_root}rtl" ]; then
-                  search_paths="$search_paths -y ${module_root}rtl"
-                  echo "  Adding directory: ${module_root}rtl"
-                fi
-
-                if [ -d "${module_root}tb" ]; then
-                  search_paths="$search_paths -y ${module_root}tb"
-                  echo "  Adding directory: ${module_root}tb"
-                fi
-
-                if [ -d "${module_root}src" ]; then
-                  search_paths="$search_paths -y ${module_root}src"
-                  echo "  Adding directory: ${module_root}src"
-                fi
-              fi
-            fi
-
-            # 运行Verilator检查
-            echo "  Command: verilator --lint-only -Wall --no-timing $search_paths \"$file\""
-            verilator --lint-only -Wall --no-timing $search_paths "$file" || exit 1
+            verilator --lint-only -Wall --no-timing "$file" || exit 1
           done
 
     - name: Check Tcl syntax (basic)
