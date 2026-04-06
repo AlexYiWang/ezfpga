@@ -25,13 +25,27 @@ jobs:
 
     - name: Check Verilog/SystemVerilog syntax
       run: |
-        # 查找所有 .v 和 .sv 文件，进行基本语法检查
+        # 1. 定义包含路径 (Include Paths)
+        # 告诉 Verilator 去哪里找模块定义
+        INC_FLAGS=$(find modules projects -type d -name "rtl" | sed 's/^/-I/')
+        
+        # 2. 批量检查逻辑
+        # 对于 Testbench (.sv)，我们开启 --timing 以支持 wait 和 # 延迟
+        # 对于普通 RTL (.v)，我们保持严格的 Wall 检查
         find . -type f \( -name "*.v" -o -name "*.sv" \) \
           -not -path "./.git/*" \
-          -not -path "./projects/desktop_weather_station/*" \
+          -not -path "*/obj_dir/*" \
           | while read file; do
             echo "Checking $file"
-            verilator --lint-only -Wall --no-timing "$file" || exit 1
+            
+            # 判断是否为 Testbench 文件
+            if [[ $file == *"tb_"* ]]; then
+              # Testbench 检查：允许 timing，忽略延迟警告
+              verilator --lint-only -Wall --timing -Wno-STMTDLY $INC_FLAGS "$file" || exit 1
+            else
+              # 普通 RTL 检查：相对严格
+              verilator --lint-only -Wall --no-timing $INC_FLAGS "$file" || exit 1
+            fi
           done
 
     - name: Check Tcl syntax (basic)
