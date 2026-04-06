@@ -17,6 +17,7 @@ module test(
     reg                [  15: 0]        flush_data                 ;//当前坐标点显示的数据
     wire               [  15: 0]        flush_addr_width           ;//当前刷新的x坐标
     wire               [  15: 0]        flush_addr_height          ;//当前刷新的y坐标
+    wire                                spi_screen_flush_fsync     ;//屏幕帧同步信号（内部使用）
 
 
 always @(posedge sys_clk or negedge sys_rst_n) begin                // 显示九宫格测试图片 240*240
@@ -57,6 +58,7 @@ spi_screen_top spi_screen_top_inst(
     .flush_data_i                       (flush_data                ),//当前坐标点显示的数据
     .flush_addr_width_o                 (flush_addr_width          ),//当前刷新的x坐标
     .flush_addr_height_o                (flush_addr_height         ),//当前刷新的y坐标
+    .spi_screen_flush_fsync_o           (spi_screen_flush_fsync    ),//屏幕帧同步信号
 
      //spi tft screen   屏幕接口
     .lcd_spi_sclk                       (lcd_spi_sclk              ),// 屏幕spi时钟接口

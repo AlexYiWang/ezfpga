@@ -27,13 +27,14 @@ module tb_spi_tft();
     // 1. 信号定义 [cite: 265, 266]
     reg        sys_clk;
     reg        sys_rst_n;
-    
+
     wire       lcd_spi_sclk;
     wire       lcd_spi_mosi;
     wire       lcd_spi_cs;
     wire       lcd_dc;
     wire       lcd_reset;
     wire       lcd_blk;
+    wire       lcd_init_done;
 
     // 2. 实例化你的顶层测试模块 [cite: 277, 281]
     test u_test (
@@ -44,7 +45,8 @@ module tb_spi_tft();
         .lcd_spi_cs   (lcd_spi_cs),
         .lcd_dc       (lcd_dc),
         .lcd_reset    (lcd_reset),
-        .lcd_blk      (lcd_blk)
+        .lcd_blk      (lcd_blk),
+        .lcd_init_done(lcd_init_done)
     );
 
     // 3. 时钟产生：50MHz (20ns 周期) [cite: 191]

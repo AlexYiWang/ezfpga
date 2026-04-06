@@ -69,8 +69,8 @@ jobs:
             fi
 
             # 运行Verilator检查
-            echo "  Command: verilator --lint-only -Wall $search_paths \"$file\""
-            verilator --lint-only -Wall $search_paths "$file" || exit 1
+            echo "  Command: verilator --lint-only -Wall --no-timing $search_paths \"$file\""
+            verilator --lint-only -Wall --no-timing $search_paths "$file" || exit 1
           done
 
     - name: Check Tcl syntax (basic)

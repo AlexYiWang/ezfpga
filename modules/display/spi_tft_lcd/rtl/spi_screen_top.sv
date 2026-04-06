@@ -77,7 +77,7 @@ module spi_screen_top(
         if (sys_rst_n == 1'b0 || spi_screen_flush_fsync == 1'b1)
             width_cnt <= 16'd0;                     // 复位或帧同步时清零
         else if (pixel_start_pulse) begin           // 只在像素开始时更新
-            if (width_cnt == (SCREEN_WIDTH - 1))
+            if (width_cnt == (SCREEN_WIDTH[15:0] - 1))
                 width_cnt <= 16'd0;                 // 行尾，清零准备下一行
             else
                 width_cnt <= width_cnt + 1'b1;      // 行内，递增X坐标
@@ -90,8 +90,8 @@ module spi_screen_top(
     always @(posedge sys_clk or negedge sys_rst_n) begin
         if (sys_rst_n == 1'b0 || spi_screen_flush_fsync == 1'b1)
             height_cnt <= 16'd0;                               // 复位或帧同步时清零
-        else if (pixel_start_pulse && (width_cnt == SCREEN_WIDTH - 1)) begin // 行尾像素
-            if (height_cnt == (SCREEN_HEIGHT - 1))
+        else if (pixel_start_pulse && (width_cnt == SCREEN_WIDTH[15:0] - 1)) begin // 行尾像素
+            if (height_cnt == (SCREEN_HEIGHT[15:0] - 1))
                 height_cnt <= 16'd0;                           // 帧尾，清零准备下一帧
             else
                 height_cnt <= height_cnt + 1'b1;               // 帧内，递增Y坐标
