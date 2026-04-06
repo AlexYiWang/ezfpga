@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-module test(
+module lcd_basic_test_top(
     input                               sys_clk                    ,// 系统时钟
     input                               sys_rst_n                  ,// 复位
 

@@ -39,7 +39,7 @@ module tb_spi_tft();
     /* verilator lint_on UNUSEDSIGNAL */
 
     // 2. 实例化你的顶层测试模块 [cite: 277, 281]
-    test u_test (
+    lcd_basic_test_top u_lcd_basic_test_top (
         .sys_clk      (sys_clk),
         .sys_rst_n    (sys_rst_n),
         .lcd_spi_sclk (lcd_spi_sclk),
