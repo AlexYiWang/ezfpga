@@ -14,7 +14,7 @@ module uart_tx (
     // 系统时钟频率和目标波特率
     parameter CLK_FREQ = 50_000_000;         // 50MHz 系统时钟
     parameter UART_BPS = 115200  ;           // 115200 波特率
-    localparam [15:0] BAUD_CNT_MAX = CLK_FREQ / UART_BPS;  // 每个比特对应的时钟周期数
+    localparam [31:0] BAUD_CNT_MAX = CLK_FREQ / UART_BPS;  // 每个比特对应的时钟周期数
 
     // 发送数据寄存器：使能时锁存要发送的数据
     reg [7:0] tx_data_t;
