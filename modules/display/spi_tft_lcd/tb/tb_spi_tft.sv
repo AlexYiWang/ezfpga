@@ -31,7 +31,6 @@ module tb_spi_tft();
     wire       lcd_spi_mosi;
     wire       lcd_dc;
 
-    // Verilator pragma: these signals are for waveform observation only
     /* verilator lint_off UNUSEDSIGNAL */
     wire       lcd_spi_sclk;
     wire       lcd_spi_cs;
