@@ -1,29 +1,27 @@
 # EZFPGA 🚀
 
-[English] | [中文](./README_zh.md)
+[English](./README.md) | [中文](./README_zh.md)
 
-Welcome to **EZFPGA**! 
+Welcome to **EZFPGA**!
 
-The goal of this repository is simple: to make FPGA development **easy, fun, and accessible**. 
+The goal of this repository is simple: to make FPGA development **easy, fun, and accessible**.
 
 Whether you are hacking on a new development board, trying to light up a display, reading sensor data, or just looking for inspiration for your next hardware build, you will find useful and ready-to-use "bricks" here.
 
 **EZFPGA** is an open-source FPGA peripheral driver library tailored for Xilinx Artix-7 (XC7A100T). With standardized bus architecture and modular design, it aims to simplify FPGA hardware development workflow.
 
 ## 🚀 Core Features
-- **AXI4-Lite Bus Support**: All core display modules support AXI standard bus, making it easy to integrate with soft-core SoC environments.
-- **Atomic Driver Library**: Driver code is decoupled from application logic, highly reusable.
-- **Automated Build**: Supports Tcl scripts to rebuild Vivado projects, eliminating tedious GUI configuration.
-- **Double Buffering Display Architecture**: Utilizes Artix-7's rich BRAM resources for high-performance image refresh.
+- **SPI LCD Driver**: Complete SPI TFT LCD display driver supporting multiple screen sizes
+- **Atomic Driver Library**: Driver code is decoupled from application logic, highly reusable
+- **Automated Build**: Supports Tcl scripts to rebuild Vivado projects, eliminating tedious GUI configuration
+- **Modular Design**: Each module is independent, testable, and integrable
 
 ## 🏗️ Project Structure
-
-The repository is organized into modular components and project examples:
 
 ```
 EZFPGA/
 ├── .github/                # GitHub Actions CI scripts
-├── docs/                   # Documentation (images, specifications)
+├── docs/                   # Documentation
 ├── modules/                # Atomic driver library (highly reusable RTL source)
 │   ├── bus/                # Bus and interface conversion modules
 │   │   └── axi_lite/       # AXI4-Lite Slave universal controller interface
@@ -33,19 +31,22 @@ EZFPGA/
 │   │   └── font_engine/    # Character rendering engine & ASCII font ROM
 │   ├── sensor/             # Sensor driver modules
 │   │   ├── imu_mpu6050/    # Gyroscope I2C driver
-│   │   └── bluetooth_hc05/ # Bluetooth UART transparent transmission
+│   │   ├── bluetooth_hc05/ # Bluetooth UART transparent transmission
+│   │   └── temp/           # Temperature sensor driver
+│   ├── motor/              # Motor control module
 │   └── common/             # Common basic components
 │       ├── fifo/           # Synchronous/asynchronous FIFO wrapper
 │       └── uart/           # Standard UART debugging module
 ├── projects/               # Debugging case studies (independent project snapshots)
-│   ├── 01_lcd_basic_test/  # Case 1: Basic 9-grid display verification
-│   ├── 02_lcd_axi_ctrl/    # Case 2: AXI bus control display integration
-│   └── 03_imu_weather_st/  # Case 3: Future goal (desktop weather/level)
+│   ├── 01_lcd_basic_test/ # Case 1: Basic 9-grid display verification
+│   ├── 02_uart_loopback/  # Case 2: UART loopback test
+│   ├── 03_imu_weather_st/ # Case 3: Desktop weather/level (planned)
+│   └── desktop_weather_station/ # Desktop weather station project
 ├── tools/                  # Auxiliary development tools
-├── scripts/                # Global auxiliary scripts
-├── .gitignore             # Ignore Vivado logs and temporary files
-├── LICENSE                # License (MIT/Apache 2.0)
-└── README.md              # Project portal
+├── scripts/                 # Global auxiliary scripts
+├── .gitignore              # Ignore Vivado logs and temporary files
+├── LICENSE                 # License (MIT)
+└── README.md               # Project portal
 ```
 
 Each module contains:
@@ -54,9 +55,9 @@ Each module contains:
 - `README.md` – Module-specific documentation
 
 ## 📂 Directory Navigation
-- `/modules`: Stores verified generic RTL drivers.
-- `/projects`: Stores specific debugging cases and top-level integration code.
-- `/scripts`: Stores automation scripts for restoring project environments.
+- `/modules`: Stores verified generic RTL drivers
+- `/projects`: Stores specific debugging cases and top-level integration code
+- `/scripts`: Stores automation scripts for restoring project environments
 
 ## 🛠️ Development Environment
 - **FPGA Chip**: Artix-7 XC7A100T
@@ -66,44 +67,43 @@ Each module contains:
 ## 📦 Available Modules
 
 ### 🖥️ Display Modules
-- **SPI TFT LCD** – Driver for SPI-based TFT LCD screens
-  - Location: `modules/display/spi_tft_lcd/`
-  - Status: Under development
-- **LCD Controller** – Controller with request/response handshake mechanism
-  - Location: `modules/display/lcd_controller/`
-  - Status: Planned
-- **Font Engine** – Character rendering engine & ASCII font ROM
-  - Location: `modules/display/font_engine/`
-  - Status: Planned
+| Module | Location | Status |
+|--------|----------|--------|
+| SPI TFT LCD Driver | `modules/display/spi_tft_lcd/` | ✅ Available |
+| LCD Controller | `modules/display/lcd_controller/` | 🔄 In Development |
+| Font Engine | `modules/display/font_engine/` | 🔄 In Development |
 
 ### 🌉 Bus & Interface Modules
-- **AXI4-Lite Slave** – Universal controller interface for AXI4-Lite bus
-  - Location: `modules/bus/axi_lite/`
-  - Status: Planned
+| Module | Location | Status |
+|--------|----------|--------|
+| AXI4-Lite Slave | `modules/bus/axi_lite/` | 🔄 In Development |
 
 ### 🌡️ Sensor Modules
-- **Temperature Sensor** – Interface for temperature sensors (e.g., DHT11)
-  - Location: `modules/sensor/temp/`
-  - Status: Planned
-- **MPU6050 IMU** – Gyroscope and accelerometer I2C driver
-  - Location: `modules/sensor/imu_mpu6050/`
-  - Status: Planned
-- **HC-05 Bluetooth** – Bluetooth UART transparent transmission module
-  - Location: `modules/sensor/bluetooth_hc05/`
-  - Status: Planned
+| Module | Location | Status |
+|--------|----------|--------|
+| MPU6050 IMU | `modules/sensor/imu_mpu6050/` | 🔄 In Development |
+| HC-05 Bluetooth | `modules/sensor/bluetooth_hc05/` | 🔄 In Development |
+| Temperature Sensor | `modules/sensor/temp/` | 🔄 In Development |
 
 ### 🧩 Common Modules
-- **FIFO Wrapper** – Synchronous/asynchronous FIFO implementation
-  - Location: `modules/common/fifo/`
-  - Status: Planned
-- **UART Module** – Standard UART debugging module
-  - Location: `modules/common/uart/`
-  - Status: Planned
+| Module | Location | Status |
+|--------|----------|--------|
+| FIFO Wrapper | `modules/common/fifo/` | 🔄 In Development |
+| UART Module | `modules/common/uart/` | ✅ Available |
 
 ### 🚀 Motor Modules
-- **Motor Control** – PWM and driver logic for DC/stepper motors
-  - Location: `modules/motor/`
-  - Status: Planned
+| Module | Location | Status |
+|--------|----------|--------|
+| Motor Control | `modules/motor/` | 🔄 In Development |
+
+## 📂 Case Projects
+
+| Case | Description | Status |
+|------|-------------|--------|
+| 01_lcd_basic_test | Basic 9-grid display verification | ✅ Completed |
+| 02_uart_loopback | UART loopback test | ✅ Completed |
+| 03_imu_weather_st | Desktop weather/level instrument | 📋 Planned |
+| desktop_weather_station | Desktop weather station full project | 🔄 In Development |
 
 ## 🛠️ Quick Start
 
@@ -114,7 +114,7 @@ Each module contains:
    ```
 
 2. **Explore a module**
-   Navigate to the module directory, e.g., `modules/display/spi_tft_lcd/`, and check the `rtl/` folder for ready‑to‑use HDL code.
+   Navigate to the module directory, e.g. `modules/common/uart/`, and check the `rtl/` folder for ready-to-use HDL code.
 
 3. **Use in your project**
    Copy the RTL files into your own FPGA project and instantiate the modules as needed.
@@ -152,8 +152,6 @@ I frequently share my hardware explorations, project showcases, and dev logs. Yo
 
 *Feel free to explore, fork, and star this repository if you find it helpful!*
 
-*This project is continuously updated, with plans to introduce more cases like gyroscope dynamic level, Bluetooth wireless control, etc.*
-
 ---
 
-📖 **中文文档**: [README_zh.md](README_zh.md) - 查看中文版本的项目说明。
+📖 **中文文档**: [README_zh.md](README_zh.md) - View the project description in Chinese.
