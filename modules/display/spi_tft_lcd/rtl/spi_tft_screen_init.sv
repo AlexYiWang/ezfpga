@@ -92,7 +92,7 @@ always@(*) begin
         else
             next_state = S_DELAY;
     S_ACK:
-        next_state <= S_IDLE;
+        next_state = S_IDLE;
     default: next_state = S_IDLE;
     endcase
 

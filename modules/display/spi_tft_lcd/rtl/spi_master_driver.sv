@@ -14,7 +14,9 @@ module spi_master_driver(
 
     //用户接口
     input                               spi_start_i                ,// spi开始信号
-    input                               spi_end_i                  ,/* verilator lint_off UNUSEDSIGNAL */ // spi结束信号
+    /* verilator lint_off UNUSEDSIGNAL */
+    input                               spi_end_i                  ,// spi结束信号
+    /* verilator lint_on UNUSEDSIGNAL */
     input              [   7: 0]        spi_send_data_i            ,// spi发送数据
     output      reg                     spi_send_ack_o             ,// spi发送8bit数据完成信号
 
